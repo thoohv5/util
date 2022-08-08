@@ -1,12 +1,22 @@
-package file
+package path
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
-	"path"
+	spath "path"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrPathRead       = errors.New("path read err")
+	ErrFileDelete     = errors.New("file delete err")
+	ErrFileExecutable = errors.New("file executable err")
+	ErrFileSymlinks   = errors.New("file symlinks err")
 )
 
 // CurrentAbPath 当前绝对路径
@@ -49,6 +59,7 @@ func tmpDir() (string, error) {
 	// 绝对路径
 	res, err := filepath.EvalSymlinks(dir)
 	if nil != err {
+		err = errors.WithMessagef(ErrFileSymlinks, "err:%v", err)
 		return "", err
 	}
 
@@ -61,12 +72,14 @@ func CurrentAbPathByExecutable() (string, error) {
 	// 执行文件
 	exePath, err := os.Executable()
 	if err != nil {
+		err = errors.WithMessagef(ErrFileExecutable, "err:%v", err)
 		return "", err
 	}
 
 	// 绝对路径
 	res, err := filepath.EvalSymlinks(filepath.Dir(exePath))
 	if err != nil {
+		err = errors.WithMessagef(ErrFileSymlinks, "err:%v", err)
 		return "", err
 	}
 
@@ -82,7 +95,7 @@ func CurrentAbPathByCaller(opts ...Option) string {
 	var abPath string
 	_, filename, _, ok := runtime.Caller(o.skip)
 	if ok {
-		abPath = path.Dir(filename)
+		abPath = spath.Dir(filename)
 	}
 	return abPath
 }
@@ -101,4 +114,20 @@ func AbPath(file string, opts ...Option) string {
 
 	// 绝对路径
 	return fmt.Sprintf("%s/%s", CurrentAbPathByCaller(opts...), o.file)
+}
+
+// Rm 删除文件夹，不包括当前文件夹
+func Rm(path string) (err error) {
+	dir, err := ioutil.ReadDir("/tmp")
+	if nil != err {
+		err = errors.WithMessagef(ErrPathRead, "err:%v", err)
+		return
+	}
+	for _, d := range dir {
+		if err = os.RemoveAll(spath.Join([]string{"tmp", d.Name()}...)); nil != err {
+			err = errors.WithMessagef(ErrFileDelete, "err:%v", err)
+			return
+		}
+	}
+	return
 }

@@ -1,4 +1,4 @@
-package file
+package path
 
 type Option func(*options)
 
