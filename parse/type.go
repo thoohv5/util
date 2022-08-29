@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
+	"unsafe"
 )
 
 /*** Parse ***/
@@ -142,4 +143,19 @@ func StrVal(value interface{}) (key string) {
 		key = string(newValue)
 	}
 	return
+}
+
+// StrToBytes converts string to byte slice without a memory allocation.
+func StrToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(
+		&struct {
+			string
+			Cap int
+		}{s, len(s)},
+	))
+}
+
+// BytesToStr converts byte slice to string without a memory allocation.
+func BytesToStr(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
 }
