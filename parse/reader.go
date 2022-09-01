@@ -11,6 +11,10 @@ func ReaderToBytes(reader io.ReadCloser) ([]byte, error) {
 	return ioutil.ReadAll(reader)
 }
 
-func BytesToReader(bs []byte) (io.ReadCloser, error) {
+func BytesToReaderCloser(bs []byte) (io.ReadCloser, error) {
 	return ioutil.NopCloser(bytes.NewBuffer(bs)), nil
+}
+
+func BytesToReader(bs []byte) (io.Reader, error) {
+	return bytes.NewBuffer(bs), nil
 }
