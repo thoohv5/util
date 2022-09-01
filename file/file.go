@@ -17,10 +17,10 @@ var (
 	ErrFileClose    = errors.New("file Close err")
 )
 
-// CheckIsExist 检查文件是否存在
-func CheckIsExist(filename string) bool {
+// CheckIsExist 检查文件/文件夹是否存在
+func CheckIsExist(filOrPath string) bool {
 	exist := false
-	if _, err := os.Stat(filename); !os.IsNotExist(err) {
+	if _, err := os.Stat(filOrPath); !os.IsNotExist(err) {
 		exist = true
 	}
 	return exist
